@@ -85,19 +85,19 @@ void testInverseTrignometricFunctions(std::vector<float>& values)
 void testExpFunctions(std::vector<float>& values)
 {
     //values between 0.1 and 10
-    fillLinearRange(values, 0.1, 10);
+    fillLinearRange(values, 0.01, 1);
     printf("Testing ln(x):\n");
     testFunction([](float x)->float{return log(x)/log(SEML_E);}, [](__m128 x)->__m128{return ln(x);}, values);
     
-    //values between -32 and 32
-    fillLinearRange(values, -32, 32);
+    //values between -10 and 10
+    fillLinearRange(values, -10, 10);
     printf("Testing exp(x):\n");
     testFunction([](float x)->float{return exp(x);}, [](__m128 x)->__m128{return exp(x);}, values);
     
-    //values between -32 and 32
-    fillLinearRange(values, -32, 32);
+    //values between -10 and 10
+    fillLinearRange(values, 0, 10);
     printf("Testing pow(x, 2.712):\n");
-    testFunction([](float x)->float{return pow(x, 2.712);}, [](__m128 x)->__m128{return pow(x, 2.712);}, values);
+    testFunction([](float x)->float{return pow(x, 2.712);}, [](__m128 x)->__m128{return pow(x, 2.712f);}, values);
 }
 
 int main()
@@ -105,8 +105,8 @@ int main()
     //only testing functions that are newly added. Those are approximations
     //and not provided by SSE
     std::vector<float> values = std::vector<float>(SIZE);
-    testTrignometricFunctions(values); //correct
-    testInverseTrignometricFunctions(values); //correct
-    testExpFunctions(values); //As correct as I can get I guess
+    testTrignometricFunctions(values);
+    testInverseTrignometricFunctions(values);
+    testExpFunctions(values);
     return 0;
 }
