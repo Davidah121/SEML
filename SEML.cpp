@@ -116,14 +116,14 @@ __m128 negate(__m128 x)
     //NOTE: Only works with IEEE-754 single precision floats.
     //Should be valid on all x86 processors especially if it uses SSE / AVX / etc.
     const __m128i onlySignBit = _mm_set1_epi32(0x80000000);
-    return _mm_or_ps(x, _mm_castsi128_ps(onlySignBit));
+    return _mm_xor_ps(x, _mm_castsi128_ps(onlySignBit));
 }
 __m128d negate(__m128d x)
 {
     //NOTE: Only works with IEEE-754 double precision floats.
     //Should be valid on all x86 processors especially if it uses SSE / AVX / etc.
     const __m128i onlySignBit = _mm_set1_epi64x(0x8000000000000000);
-    return _mm_or_pd(x, _mm_castsi128_pd(onlySignBit));
+    return _mm_xor_pd(x, _mm_castsi128_pd(onlySignBit));
 }
 
 __m128 sign(__m128 x)
