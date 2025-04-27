@@ -1,4 +1,5 @@
 #include "SEML.h"
+
 #include <iostream>
 #include <functional>
 #include <vector>
@@ -63,10 +64,10 @@ void testTrignometricFunctions(std::vector<float>& values)
     //values between -2pi and 2pi
     fillLinearRange(values, -SEML_PI2, SEML_PI2);
     printf("Testing sin(x):\n");
-    testFunction([](float x)->float{return sin(x);}, [](__m128 x)->__m128{return sin(x);}, values);
+    testFunction([](float x)->float{return sin(x);}, [](__m128 x)->__m128{return SEML::sin(x);}, values);
     
     printf("Testing cos(x):\n");
-    testFunction([](float x)->float{return cos(x);}, [](__m128 x)->__m128{return cos(x);}, values);
+    testFunction([](float x)->float{return cos(x);}, [](__m128 x)->__m128{return SEML::cos(x);}, values);
 }
 
 void testInverseTrignometricFunctions(std::vector<float>& values)
@@ -74,12 +75,12 @@ void testInverseTrignometricFunctions(std::vector<float>& values)
     //values between -1 and 1
     fillLinearRange(values, -1, 1);
     printf("Testing arcsin(x):\n");
-    testFunction([](float x)->float{return asin(x);}, [](__m128 x)->__m128{return arcsin(x);}, values);
+    testFunction([](float x)->float{return asin(x);}, [](__m128 x)->__m128{return SEML::arcsin(x);}, values);
     
     //values between -10 and 10
     fillLinearRange(values, -10, 10);
     printf("Testing arctan(x):\n");
-    testFunction([](float x)->float{return atan(x);}, [](__m128 x)->__m128{return arctan(x);}, values);
+    testFunction([](float x)->float{return atan(x);}, [](__m128 x)->__m128{return SEML::arctan(x);}, values);
 }
 
 void testExpFunctions(std::vector<float>& values)
@@ -87,17 +88,17 @@ void testExpFunctions(std::vector<float>& values)
     //values between 0.1 and 10
     fillLinearRange(values, 0.01, 1);
     printf("Testing ln(x):\n");
-    testFunction([](float x)->float{return log(x)/log(SEML_E);}, [](__m128 x)->__m128{return ln(x);}, values);
+    testFunction([](float x)->float{return log(x)/log(SEML_E);}, [](__m128 x)->__m128{return SEML::ln(x);}, values);
     
     //values between -10 and 10
     fillLinearRange(values, -10, 10);
     printf("Testing exp(x):\n");
-    testFunction([](float x)->float{return exp(x);}, [](__m128 x)->__m128{return exp(x);}, values);
+    testFunction([](float x)->float{return exp(x);}, [](__m128 x)->__m128{return SEML::exp(x);}, values);
     
     //values between -10 and 10
     fillLinearRange(values, 0, 10);
     printf("Testing pow(x, 2.712):\n");
-    testFunction([](float x)->float{return pow(x, 2.712);}, [](__m128 x)->__m128{return pow(x, 2.712f);}, values);
+    testFunction([](float x)->float{return pow(x, 2.712);}, [](__m128 x)->__m128{return SEML::pow(x, 2.712f);}, values);
 }
 
 int main()
