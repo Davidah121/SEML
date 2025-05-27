@@ -12,9 +12,38 @@
 	#define SEML_E 2.71828182846
 #endif
 
+#ifndef SEML_ROUND_DOWN
+    #define SEML_ROUND_DOWN _MM_ROUND_DOWN
+    #define SEML_ROUND_NEAREST _MM_ROUND_NEAREST
+    #define SEML_ROUND_UP _MM_ROUND_UP
+    #define SEML_ROUND_TOWARDS_ZERO _MM_ROUND_TOWARD_ZERO
+#endif
 
 namespace SEML
 {
+    /**
+     * @brief Sets the rounding mode to be used for all SSE and AVX instructions
+     *      Calls _MM_SET_ROUNDING_MODE()
+     *      Use the SEML_ROUND constants. Note that the _MM_ROUND constants are also valid
+     *              SEML_ROUND_DOWN: Same as floor. Follows the same logic as normal casting. (Aka. round towards -INF)
+     *              SEML_ROUND_NEAREST: Ties to Even rounding. (DEFAULT)
+     *              SEML_ROUND_UP: Same as ceiling (Aka. rounds towards INF)
+     *              SEML_ROUND_TOWARDS_ZERO: Rounds in the direction of 0 (up if negative. down if positive)
+     *      
+     *      NOTE THAT THIS DOES NOT AFFECT NORMAL ROUNDING WHEN USING THE APPROPRIATE ARGUMENTS. ONLY SIMD.
+     *          To adjust the normal rounding, use _mm_setcsr
+     * @param roundingMode 
+     */
+    void setRoundingMode(int roundingMode);
+
+    /**
+     * @brief Gets the rounding mode used for all SSE and AVX instructions.
+     *      Calls _MM_GET_ROUNDING_MODE()
+     * 
+     * @return int 
+     */
+    int getRoundingMode();
+
     /**
      * @brief Converts doubles to a 64 bit number. Does not work with all possible values.
      *      Range [0, 2^52] for unsigned. [-2^51, 2^51] for signed.
@@ -45,6 +74,26 @@ namespace SEML
      */
     __m128d int64ToDouble(__m128i x);
     __m128d uint64ToDouble(__m128i x);
+
+    /**
+     * @brief Converts a 32 bit number to a float.
+     *      Utilizes fastInt64ToDouble
+     *      Rounding is subject to the roundingMode selected.
+     * @param x 
+     * @return __m128 
+     */
+    __m128 uint32ToFloat(__m128i x);
+    __m128 int32ToFloat(__m128i x);
+
+    /**
+     * @brief Converts a float to an 32 bit number.
+     *      Utilizes fastDoubleToInt64
+     *      Rounding is subject to the roundingMode selected.
+     * @param x 
+     * @return __m128i 
+     */
+    __m128i floatToUInt32(__m128 x);
+    __m128i floatToInt32(__m128 x);
 
     /**
      * @brief Reduces x to the range [-PI, PI]

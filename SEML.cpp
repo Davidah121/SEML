@@ -4,6 +4,15 @@
 
 namespace SEML
 {
+    void setRoundingMode(int roundingMode)
+    {
+        _MM_SET_ROUNDING_MODE(roundingMode);
+    }
+    int getRoundingMode()
+    {
+        return _MM_GET_ROUNDING_MODE();
+    }
+
     __m128 packDoublesIntoFloat(__m128d x1, __m128d x2)
     {
         __m128 outputLow = _mm_cvtpd_ps(x1);
@@ -15,7 +24,7 @@ namespace SEML
     __m128i fastDoubleToInt64(__m128d x)
     {
         x = _mm_add_pd(x, _mm_set1_pd(0x0018000000000000));
-        return _mm_xor_si128(_mm_castpd_si128(x), _mm_castpd_si128(_mm_set1_pd(0x0018000000000000)));
+        return _mm_sub_epi64(_mm_castpd_si128(x), _mm_castpd_si128(_mm_set1_pd(0x0018000000000000)));
     }
     __m128i fastDoubleToUInt64(__m128d x)
     {
@@ -51,6 +60,53 @@ namespace SEML
         __m128d f = _mm_sub_pd(_mm_castsi128_pd(xH), _mm_set1_pd(19342813118337666422669312.));     //  2^84 + 2^52
         return _mm_add_pd(f, _mm_castsi128_pd(xL));
     }
+
+    __m128 uint32ToFloat(__m128i x)
+    {
+        __m128d A1 = fastUInt64ToDouble(_mm_cvtepu32_epi64(x));
+        __m128d B1 = fastUInt64ToDouble(_mm_cvtepu32_epi64(_mm_srli_si128(x, 8)));
+        __m128 A1Float = _mm_cvtpd_ps(A1);
+        __m128 B1Float = _mm_cvtpd_ps(B1);
+        return _mm_shuffle_ps(A1Float, B1Float, 0b01000100);
+    }
+    __m128 int32ToFloat(__m128i x)
+    {
+        __m128d A1 = fastInt64ToDouble(_mm_cvtepu32_epi64(x));
+        __m128d B1 = fastInt64ToDouble(_mm_cvtepu32_epi64(_mm_srli_si128(x, 8)));
+        __m128 A1Float = _mm_cvtpd_ps(A1);
+        __m128 B1Float = _mm_cvtpd_ps(B1);
+        return _mm_shuffle_ps(A1Float, B1Float, 0b01000100);
+    }
+
+    __m128i floatToUInt32(__m128 x)
+    {
+        //explanation: Convert to double. Use fast conversion to int64 since we can't use values outside of 2^32 anyways.
+        //Skip truncation, shuffle them into 1 register grabbing the low 4 bytes for each int64 value. return.
+        //Note that to shuffle, type punning is used. No performance loss from cast instructions. Convert instructions have a cost
+        __m128d A1 = _mm_cvtps_pd(x);
+        __m128d B1 = _mm_cvtps_pd(_mm_castsi128_ps(_mm_srli_si128(_mm_castps_si128(x), 8)));
+        __m128i A1AsUInt64 = fastDoubleToUInt64(A1);
+        __m128i B1AsUInt64 = fastDoubleToUInt64(B1);
+
+        //cheating because shuffle_epi32 doesn't work like I need and shuffle_ps does. Type does not matter.
+        __m128 finalResAsFloats = _mm_shuffle_ps(_mm_castsi128_ps(A1AsUInt64), _mm_castsi128_ps(B1AsUInt64), 0b10001000);
+        return _mm_castps_si128(finalResAsFloats); //convert back
+    }
+    __m128i floatToInt32(__m128 x)
+    {
+        //explanation: Convert to double. Use fast conversion to int64 since we can't use values outside of 2^32 anyways.
+        //Skip truncation, shuffle them into 1 register grabbing the low 4 bytes for each int64 value. return.
+        //Note that to shuffle, type punning is used. No performance loss from cast instructions. Convert instructions have a cost
+        __m128d A1 = _mm_cvtps_pd(x);
+        __m128d B1 = _mm_cvtps_pd(_mm_castsi128_ps(_mm_srli_si128(_mm_castps_si128(x), 8)));
+        __m128i A1AsUInt64 = fastDoubleToInt64(A1);
+        __m128i B1AsUInt64 = fastDoubleToInt64(B1);
+
+        //cheating because shuffle_epi32 doesn't work like I need and shuffle_ps does. Type does not matter.
+        __m128 finalResAsFloats = _mm_shuffle_ps(_mm_castsi128_ps(A1AsUInt64), _mm_castsi128_ps(B1AsUInt64), 0b10001000);
+        return _mm_castps_si128(finalResAsFloats); //convert back
+    }
+
 
     //converts range to [-PI, PI]
     __m128 piRangeReduction(__m128 x)

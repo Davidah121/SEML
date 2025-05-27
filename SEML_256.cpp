@@ -51,7 +51,7 @@ namespace SEML
     __m256i fastDoubleToInt64(__m256d x)
     {
         x = _mm256_add_pd(x, _mm256_set1_pd(0x0018000000000000));
-        return _mm256_xor_si256(_mm256_castpd_si256(x), _mm256_castpd_si256(_mm256_set1_pd(0x0018000000000000)));
+        return _mm256_sub_epi64(_mm256_castpd_si256(x), _mm256_castpd_si256(_mm256_set1_pd(0x0018000000000000)));
     }
     __m256i fastDoubleToUInt64(__m256d x)
     {
@@ -87,6 +87,49 @@ namespace SEML
         __m256d f = _mm256_sub_pd(_mm256_castsi256_pd(xH), _mm256_set1_pd(19342813118337666422669312.));     //  2^84 + 2^52
         return _mm256_add_pd(f, _mm256_castsi256_pd(xL));
     }
+
+    __m256 uint32ToFloat(__m256i x)
+    {
+        __m256d A1 = fastUInt64ToDouble(_mm256_cvtepu32_epi64(_mm256_castsi256_si128(x)));
+        __m256d B1 = fastUInt64ToDouble(_mm256_cvtepu32_epi64(_mm256_extracti128_si256(x, 1)));
+        return packDoublesIntoFloat(A1, B1);
+    }
+    __m256 int32ToFloat(__m256i x)
+    {
+        __m256d A1 = fastInt64ToDouble(_mm256_cvtepu32_epi64(_mm256_castsi256_si128(x)));
+        __m256d B1 = fastInt64ToDouble(_mm256_cvtepu32_epi64(_mm256_extracti128_si256(x, 1)));
+        return packDoublesIntoFloat(A1, B1);
+    }
+    
+    __m256i floatToUInt32(__m256 x)
+    {
+        const __m256i shuffleIndicies = _mm256_set_epi32(6, 4, 2, 0, 6, 4, 2, 0); //low values should be in the front
+
+        __m256d A1 = _mm256_cvtps_pd(_mm256_castps256_ps128(x));
+        __m256d B1 = _mm256_cvtps_pd(_mm256_extractf128_ps(x, 1));
+        __m256i A1AsInt64 = fastDoubleToUInt64(A1);
+        __m256i B1AsInt64 = fastDoubleToUInt64(B1);
+
+        __m256i A1Truncated = _mm256_permutevar8x32_epi32(A1AsInt64, shuffleIndicies);
+        __m256i B1Truncated = _mm256_permutevar8x32_epi32(B1AsInt64, shuffleIndicies);
+        
+        return _mm256_set_m128i(_mm256_castsi256_si128(B1Truncated), _mm256_castsi256_si128(A1Truncated));
+    }
+    __m256i floatToInt32(__m256 x)
+    {
+        const __m256i shuffleIndicies = _mm256_set_epi32(6, 4, 2, 0, 6, 4, 2, 0); //low values should be in the front
+
+        __m256d A1 = _mm256_cvtps_pd(_mm256_castps256_ps128(x));
+        __m256d B1 = _mm256_cvtps_pd(_mm256_extractf128_ps(x, 1));
+        __m256i A1AsInt64 = fastDoubleToInt64(A1);
+        __m256i B1AsInt64 = fastDoubleToInt64(B1);
+
+        __m256i A1Truncated = _mm256_permutevar8x32_epi32(A1AsInt64, shuffleIndicies);
+        __m256i B1Truncated = _mm256_permutevar8x32_epi32(B1AsInt64, shuffleIndicies);
+        
+        return _mm256_set_m128i(_mm256_castsi256_si128(B1Truncated), _mm256_castsi256_si128(A1Truncated));
+    }
+
 
     //converts range to [-PI, PI]
     __m256 piRangeReduction(__m256 x)

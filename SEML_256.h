@@ -46,6 +46,24 @@ namespace SEML
     __m256d int64ToDouble(__m256i x);
     __m256d uint64ToDouble(__m256i x);
 
+        /**
+     * @brief Converts a 32 bit number to a float.
+     *      Utilizes fastInt64ToDouble
+     * @param x 
+     * @return __m256 
+     */
+    __m256 uint32ToFloat(__m256i x);
+    __m256 int32ToFloat(__m256i x);
+
+    /**
+     * @brief Converts a float to an 32 bit number.
+     *      Utilizes fastDoubleToInt64
+     * @param x 
+     * @return __m256i 
+     */
+    __m256i floatToUInt32(__m256 x);
+    __m256i floatToInt32(__m256 x);
+
     /**
      * @brief Reduces x to the range [-PI, PI]
      *      for trignometric functions
